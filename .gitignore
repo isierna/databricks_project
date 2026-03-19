@@ -16,3 +16,4 @@ __pycache__/
 .ipynb_checkpoints/
 
 nyctaxi_project/transformations/uploaded_data/
+.env
