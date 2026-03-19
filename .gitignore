@@ -14,3 +14,6 @@ __pycache__/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
+
+nyctaxi_project/transformations/uploaded_data/
+.env
