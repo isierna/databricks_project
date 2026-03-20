@@ -1,0 +1,108 @@
+resources:
+  jobs:
+    nyc_taxi:
+      name: nyc_taxi
+      tasks:
+        - task_key: 00_ingest_lookup
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/00_landing/ingest_lookup
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: continue_downstream_lookup
+          depends_on:
+            - task_key: 00_ingest_lookup
+          condition_task:
+            left: '{{tasks.00_ingest_lookup.values.continue_downstream}}'
+            op: EQUAL_TO
+            right: yes
+          email_notifications: {}
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: taxi_zone_lookup_task
+          depends_on:
+            - outcome: "true"
+              task_key: continue_downstream_lookup
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/02_silver/taxi_zone_lookup
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: ingest_yellow_trips
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/00_landing/ingest_yellow_trips
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: continue_downstream_yellow_taxi
+          depends_on:
+            - task_key: ingest_yellow_trips
+          condition_task:
+            left: '{{tasks.ingest_yellow_trips.values.continue_downstream}}'
+            op: EQUAL_TO
+            right: yes
+          email_notifications: {}
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: 01_yellow_trips_raw
+          depends_on:
+            - outcome: "true"
+              task_key: continue_downstream_yellow_taxi
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/01_bronze/yellow_trips_raw
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: 02_yellow_trips_cleansed
+          depends_on:
+            - task_key: 01_yellow_trips_raw
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/02_silver/yellow_trips_ceansed
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: 02_yellow_trips_enriched
+          depends_on:
+            - task_key: 02_yellow_trips_cleansed
+            - task_key: taxi_zone_lookup_task
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/02_silver/yellow_trips_enriched
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+        - task_key: 03_daily_trip_summary
+          depends_on:
+            - task_key: 02_yellow_trips_enriched
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/03_golden/daily_trip_summary
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
+      email_notifications:
+        no_alert_for_skipped_runs: false
+      git_source:
+        git_branch: main
+        git_provider: gitHub
+        git_url: https://github.com/isierna/databricks_project.git
+      max_concurrent_runs: 1
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: true
+      timeout_seconds: 0
+      webhook_notifications: {}

@@ -4,6 +4,9 @@
 
 bundle:
   name: databricks_project
+  
+include:
+  - resources/*.yml
 
 variables:
   uploaded_data_path:
