@@ -94,6 +94,16 @@ resources:
           run_if: ALL_SUCCESS
           timeout_seconds: 0
           webhook_notifications: {}
+        - task_key: 04_yellow_trips_export
+          depends_on:
+           - task_key: 02_yellow_trips_enriched
+          email_notifications: {}
+          notebook_task:
+            notebook_path: nyctaxi_project/transformations/notebooks/04_export/yellow_trips_export_incremental
+            source: GIT
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+          webhook_notifications: {}
       email_notifications:
         no_alert_for_skipped_runs: false
       git_source:
