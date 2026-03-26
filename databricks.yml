@@ -19,6 +19,7 @@ targets:
     default: true
     workspace:
       host: https://adb-7405610591599065.5.azuredatabricks.net
+      profile: DEFAULT
     variables:
       uploaded_data_path: "/Volumes/nyctaxi/00_landing/data_sources/lookup/"
   
